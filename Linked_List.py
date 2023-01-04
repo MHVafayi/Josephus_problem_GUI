@@ -30,7 +30,11 @@ class Linked_List:
 
     def __getitem__(self, index: int):
         temp = self.head
-        for i in range(0, index):
-            temp = temp.next
+        if index >= 0:
+            for i in range(0, index):
+                temp = temp.next
+        else:
+            size = self.__len__()
+            for i in range(0, size + (index % size)):
+                temp = temp.next
         return temp
-
