@@ -29,11 +29,8 @@ class Linked_List:
         return length
 
     def __getitem__(self, index: int):
-        if index > self.__len__():
-            raise IndexError("index out of bound")
-        else:
-            temp = self.head
-            for i in range(0, index):
-                temp = temp.next
-            return temp
+        temp = self.head
+        for i in range(0, index):
+            temp = temp.next
+        return temp
 
