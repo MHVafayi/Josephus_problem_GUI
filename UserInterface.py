@@ -18,7 +18,7 @@ class UserInterface:
         self.victims_master = None
 
     def main_screen(self):
-        tk.Label(self.josephus_master, text="Please enter rational numbers !", bg="#808B96", foreground="white",
+        tk.Label(self.josephus_master, text="Please enter rational values !", bg="#808B96", foreground="white",
                  font="Fixedsys").pack(side="top", pady=10)
         tk.Label(self.josephus_master, text="N: ", bg="#808B96", foreground="white", font="Fixedsys").pack(side="left")
         self.number_entry = tk.Entry(self.josephus_master)
@@ -36,9 +36,9 @@ class UserInterface:
             k = int(k)
         except:
             return "It should be a number"
-        if n > 1000 or n < 1:
+        if n >= 1000 or n < 1:
             return "N should be a number between 1 and 1000"
-        elif k > 1000 or k < 0:
+        elif k >= 1000 or k < 0:
             return "K should be a number between 0 and 1000"
         else:
             return "Yes"
@@ -55,7 +55,8 @@ class UserInterface:
             self.linked_list.create(int(self.number_entry))
             self.josephus_master.bind("<space>", self.next)
             self.josephus_master.bind("<s>", self.back_to_main_screen)
-            self.clear_josephus_master()
+            self.josephus_master.protocol("WM_DELETE_WINDOW", self.on_closing)
+            self.clear_master(self.josephus_master)
             self.canvas = tk.Canvas(self.josephus_master, bg="#808B96")
             scroll_bar_x = tk.Scrollbar(self.josephus_master, orient=tk.HORIZONTAL)
             scroll_bar_x.pack(side="bottom", fill=tk.X)
@@ -81,7 +82,7 @@ class UserInterface:
                                                                                                          column=1)
 
     def display_victims(self):
-        self.clear_victims_master()
+        self.clear_master(self.victims_master)
         canvas = tk.Canvas(self.victims_master, bg="#808B96", scrollregion=(0, 0, 0, len(self.stack) * 25 + 10))
         canvas.pack(expand=True, side="right", fill=tk.BOTH)
         scroll_bar_y = tk.Scrollbar(self.victims_master, orient=tk.VERTICAL)
@@ -96,14 +97,7 @@ class UserInterface:
             canvas.create_oval(50, 25 * i - 10, 70, 25 * i + 10, fill="red")
             canvas.create_text(60, 25 * i, text=str(self.stack[i - 1].value), fill="black")
 
-    def clear_victims_master(self):
-        for child in self.victims_master.winfo_children():
-            child.destroy()
-
     def next(self, key):
-        if len(self.linked_list) <= 1:
-            self.end()
-            return
         current = self.linked_list.get_head()
         pre_target = self.linked_list[int(self.k) - 1]
         pre_target.next.pre = current
@@ -111,11 +105,17 @@ class UserInterface:
         pre_target.next = pre_target.next.next
         current = pre_target.next
         self.linked_list = Linked_List(current)
-        self.display_left_behinds()
         self.display_victims()
+        if len(self.linked_list) <= 1:
+            self.end()
+            return
+        self.display_victims()
+        self.display_left_behinds()
+
 
     def end(self):
-        self.clear_josephus_master()
+        self.clear_master(self.josephus_master)
+        self.josephus_master.unbind("<space>")
         canvas = tk.Canvas(self.josephus_master, bg="#808B96")
         canvas.pack(expand=True, fill=tk.BOTH)
         canvas.create_text(self.josephus_master.winfo_width() / 2, self.josephus_master.winfo_height() / 2 - 100,
@@ -126,10 +126,11 @@ class UserInterface:
         canvas.create_text(self.josephus_master.winfo_width() / 2, self.josephus_master.winfo_height() / 2,
                            fill="black", text=self.linked_list.get_head().value)
         canvas.create_text(self.josephus_master.winfo_width() / 2, self.josephus_master.winfo_height() / 2 + 100,
-                           fill="white", text="press 's' to back to main screen", font="Fixedsys")
+                           fill="white", text="press 's' to go back to main screen", font="Fixedsys")
 
     def back_to_main_screen(self, key):
-        self.clear_josephus_master()
+        self.clear_master(self.josephus_master)
+        self.josephus_master.unbind("<s>")
         self.stack.clear()
         self.victims_master.destroy()
         self.main_screen()
@@ -150,6 +151,9 @@ class UserInterface:
                                     text=self.linked_list[i].value,
                                     fill="black")
 
-    def clear_josephus_master(self):
-        for child in self.josephus_master.winfo_children():
+    def on_closing(self):
+        self.josephus_master.destroy()
+        self.victims_master.destroy()
+    def clear_master(self, root: tk.Tk):
+        for child in root.winfo_children():
             child.destroy()
