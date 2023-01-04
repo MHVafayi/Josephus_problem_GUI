@@ -7,31 +7,60 @@ class UserInterface:
     def __init__(self):
         self.josephus_master = tk.Tk()
         self.josephus_master.title("Josephus")
-        self.josephus_master.geometry("500x200")
+        self.josephus_master.geometry("600x200")
         self.josephus_master.config(bg="#808B96")
         self.number_entry = tk.Entry()
         self.linked_list = Linked_List()
         self.stack = []
+        self.k = tk.Entry()
         self.main_screen()
         self.victims_master = None
 
     def main_screen(self):
-        tk.Label(self.josephus_master, text="Enter a number: ", bg="#808B96", foreground="white", font="Fixedsys").pack(side="left")
+        tk.Label(self.josephus_master, text="Please enter rational numbers !", bg="#808B96", foreground="white", font="Fixedsys").pack(side="top", pady=10)
+        tk.Label(self.josephus_master, text="N: ", bg="#808B96", foreground="white", font="Fixedsys").pack(side="left")
         self.number_entry = tk.Entry(self.josephus_master)
-        self.number_entry.pack(side="right", padx=20)
+        self.number_entry.pack(side="left", padx=20)
+        self.k = tk.Entry(self.josephus_master)
+        self.k.pack(side="right", padx= 20)
+        tk.Label(self.josephus_master, text="K: ", bg="#808B96", foreground="white", font="Fixedsys").pack(side="right")
         tk.Button(self.josephus_master, text="Display", command=self.display, width=15, height=2, bg="white", foreground="black").pack(side="bottom")
         self.josephus_master.mainloop()
 
+    def is_entry_valid(self, n, k):
+        try:
+            n = int(n)
+            k = int(k)
+        except:
+            return "It should be a number"
+        if n > 1000 or n < 1:
+            return "N should be a number between 1 and 1000"
+        elif k > 1000 or k < 0:
+            return "K should be a number between 0 and 1000"
+        else:
+            return "Yes"
+
     def display(self):
-        self.victims_master = tk.Tk()
-        self.victims_master.title("Victims")
-        self.victims_master.geometry("400x400+50+0")
-        self.josephus_master.geometry("600x400+500+0")
-        self.victims_master.config(bg="#808B96")
-        self.linked_list.create(int(self.number_entry.get()))
-        self.josephus_master.bind("<space>", self.next)
-        self.josephus_master.bind("<s>", self.back_to_main_screen)
-        self.display_left_behinds()
+        if self.is_entry_valid(self.number_entry.get(), self.k.get()) == "Yes":
+            self.number_entry = int(self.number_entry.get())
+            self.k = int(self.k.get())
+            self.victims_master = tk.Tk()
+            self.victims_master.title("Victims")
+            self.victims_master.geometry("400x400+50+0")
+            self.josephus_master.geometry("600x400+500+0")
+            self.victims_master.config(bg="#808B96")
+            self.linked_list.create(int(self.number_entry))
+            self.josephus_master.bind("<space>", self.next)
+            self.josephus_master.bind("<s>", self.back_to_main_screen)
+            self.display_left_behinds()
+        else:
+            def Ok():
+                error_master.destroy()
+            error_master = tk.Tk()
+            error_master.geometry("+"+str(int(self.josephus_master.winfo_x() + self.josephus_master.winfo_width()/2))+"+"+str(int(self.josephus_master.winfo_y() + self.josephus_master.winfo_height()/2)))
+            error_master.title("Alert")
+            tk.Button(error_master, text="Ok", command=Ok).grid(row=2, column=1)
+            tk.Label(error_master, text=self.is_entry_valid(self.number_entry.get(), self.k.get())).grid(row=1, column=1)
 
     def display_victims(self):
         self.clear_victims_master()
@@ -45,9 +74,9 @@ class UserInterface:
         for i in range(1, len(self.stack) + 1):
             canvas.create_oval(10, 25 * i - 10, 30, 25 * i + 10, fill="white")
             canvas.create_text(20, 25*i, text=str(self.stack[i-1].pre.value), fill="black")
-            canvas.create_text(35, 25*i, text="-->", fill="black")
-            canvas.create_oval(45, 25 * i - 10, 65, 25*i+10, fill="red")
-            canvas.create_text(55, 25*i, text=str(self.stack[i-1].value), fill="black")
+            canvas.create_text(40, 25*i, text="-->", fill="black")
+            canvas.create_oval(50, 25 * i - 10, 70, 25*i+10, fill="red")
+            canvas.create_text(60, 25*i, text=str(self.stack[i-1].value), fill="black")
 
     def clear_victims_master(self):
         for child in self.victims_master.winfo_children():
@@ -58,10 +87,11 @@ class UserInterface:
             self.end()
             return
         current = self.linked_list.get_head()
-        current.next.pre = current
-        self.stack.append(current.next)
-        current.next = current.next.next
-        current = current.next
+        pre_target = self.linked_list[int(self.k) - 1]
+        pre_target.next.pre = current
+        self.stack.append(pre_target.next)
+        pre_target.next = pre_target.next.next
+        current = pre_target.next
         self.linked_list = Linked_List(current)
         self.display_left_behinds()
         self.display_victims()
@@ -77,6 +107,7 @@ class UserInterface:
 
     def back_to_main_screen(self, key):
         self.clear_josephus_master()
+        self.stack.clear()
         self.victims_master.destroy()
         self.main_screen()
 
